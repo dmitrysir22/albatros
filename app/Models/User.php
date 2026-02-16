@@ -34,23 +34,14 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
 
     /**
      * Связь: У пользователя есть один профиль (анкета кандидата)
      */
-    public function profile()
-    {
-        return $this->hasOne(Profile::class);
-    }
-
+public function profile()
+{
+    return $this->hasOne(CandidateProfile::class);
+}
     /**
      * Быстрая проверка: является ли пользователь админом
      */
@@ -58,4 +49,13 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+           // 'password' => 'hashed',
+        ];
+    }
+
 }

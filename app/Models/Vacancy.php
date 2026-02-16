@@ -9,9 +9,12 @@ class Vacancy extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'title', 'slug', 'location', 'salary_range', 'type', 'description', 'required_skills', 'is_active'
-    ];
+
+protected $fillable = [
+    'title', 'slug', 'company_name', 'company_logo', 
+    'location', 'salary_range', 'type', 
+    'description', 'required_skills', 'is_active'
+];
 
     protected $casts = [
         'required_skills' => 'array',

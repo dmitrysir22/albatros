@@ -15,17 +15,19 @@
                     <span class="name">Static Pages</span>
                 </a>
             </li>
-			
+
+
             <li> 
-                <a class="dashboard2" href="#">
-                    <img src="{{ asset('backend/imgs/page/dashboard/jobs.svg') }}" alt="jobBox">
-                    <span class="name">Vacancies</span>
+                <a class="dashboard2"  href="{{ route('admin.users.index') }}">
+                    <img src="{{ asset('backend/imgs/page/dashboard/candidates.svg') }}" alt="jobBox">
+                    <span class="name">Users</span>
                 </a>
             </li>
+
             <li> 
-                <a class="dashboard2" href="#">
-                    <img src="{{ asset('backend/imgs/page/dashboard/candidates.svg') }}" alt="jobBox">
-                    <span class="name">Candidates</span>
+                <a class="dashboard2" href="{{ route('admin.vacancies.index') }}">
+                    <img src="{{ asset('backend/imgs/page/dashboard/jobs.svg') }}" alt="jobBox">
+                    <span class="name">Job Listings</span>
                 </a>
             </li>
             <li> 

@@ -146,11 +146,59 @@
     </div>
 </div>
 
-<script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
-<script>
-    // Initialize CKEditor
-    ClassicEditor.create(document.querySelector('#editor')).catch(error => { console.error(error); });
+<script src="{{ asset('backend/js/tinymce/tinymce.min.js') }}"></script>
 
+<script>
+    tinymce.init({
+        selector: '#editor', // твой ID textarea
+        license_key: 'gpl', // Это говорит редактору, что ты используешь его под лицензией GPL
+        height: 500,
+        // Список плагинов (все локальные)
+        plugins: 'code advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
+        toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | code image link',
+        
+        // Настройка загрузки изображений
+        images_upload_url: '{{ route('admin.cms.upload_image') }}',
+        
+        // Кастомный обработчик для Laravel CSRF
+        images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.withCredentials = false;
+            xhr.open('POST', '{{ route('admin.cms.upload_image') }}');
+            
+            xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+
+            xhr.onload = () => {
+                if (xhr.status < 200 || xhr.status >= 300) {
+                    reject('HTTP Error: ' + xhr.status);
+                    return;
+                }
+                const json = JSON.parse(xhr.responseText);
+                if (!json || typeof json.url !== 'string') {
+                    reject('Invalid JSON: ' + xhr.responseText);
+                    return;
+                }
+                resolve(json.url);
+            };
+
+            xhr.onerror = () => {
+                reject('Image upload failed due to a network error.');
+            }; 
+
+            const formData = new FormData();
+            formData.append('upload', blobInfo.blob(), blobInfo.filename());
+            xhr.send(formData);
+        }),
+
+        // Настройки для сохранения "чистого" кода
+        convert_urls: false, // чтобы не ломать пути к картинкам
+        verify_html: false,  // отключаем агрессивную чистку тегов
+        valid_elements: '*[*]', // разрешаем любые теги и атрибуты
+        extended_valid_elements: 'script[src|async|defer|type|charset],style,iframe[src|width|height|allowfullscreen|frameborder]',
+        
+        // Стили редактора (чтобы внутри выглядело как на сайте)
+        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+    });
     // Auto-slug generator (only for new pages)
     @if(!isset($page))
     document.getElementById('page_title').addEventListener('input', function() {
@@ -159,4 +207,7 @@
     });
     @endif
 </script>
+
+
+
 @endsection

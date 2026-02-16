@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CmsPage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage; 
 
 class CmsPageController extends Controller
 {
@@ -116,4 +117,26 @@ class CmsPageController extends Controller
         return redirect()->route('admin.cms.index')
             ->with('success', 'Page deleted successfully.');
     }
+	
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'upload' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB max
+        ]);
+
+        if ($request->hasFile('upload')) {
+            // Store image in storage/app/public/ckeditor folder
+            $path = $request->file('upload')->store('ckeditor', 'public');
+
+            // Return success response in CKEditor's expected format
+            return response()->json([
+                'uploaded' => 1,
+                'fileName' => basename($path),
+				'url'      => asset('storage/' . $path) // Используем asset() вместо Storage url
+            ]);
+        }
+
+        // Return error response
+        return response()->json(['uploaded' => 0, 'error' => ['message' => 'File not uploaded.']], 400);
+    }	
 }
