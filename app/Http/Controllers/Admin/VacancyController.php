@@ -22,50 +22,76 @@ class VacancyController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'company_name' => 'required|string|max:255',
-            'location' => 'nullable|string|max:255',
-            'type' => 'required|string',
-            'salary_range' => 'nullable|string',
-            'description' => 'required',
-            'required_skills' => 'nullable',
-        ]);
+        $data = $this->validateVacancy($request);
 
         $data['slug'] = Str::slug($data['title']) . '-' . time();
         $data['is_active'] = $request->has('is_active');
+        
+        // Обработка массивов (превращаем строки с запятыми в массив)
+        $data['required_skills'] = $this->processTags($request->required_skills);
+        $data['preferred_skills'] = $this->processTags($request->preferred_skills);
 
         Vacancy::create($data);
 
         return redirect()->route('admin.vacancies.index')->with('success', 'Vacancy created!');
     }
-	
-public function edit(Vacancy $vacancy)
-{
-    return view('admin.vacancies.form', compact('vacancy'));
-}
 
-public function update(Request $request, Vacancy $vacancy)
-{
-    $data = $request->validate([
-        'title'           => 'required|string|max:255',
-        'company_name'    => 'required|string|max:255',
-        'location'        => 'nullable|string|max:255',
-        'type'            => 'required|string',
-        'salary_range'    => 'nullable|string',
-        'description'     => 'required',
-        'required_skills' => 'nullable',
-    ]);
-
-    // Обновляем слаг только если заголовок изменился
-    if ($vacancy->title !== $request->title) {
-        $data['slug'] = \Illuminate\Support\Str::slug($request->title) . '-' . time();
+    public function edit(Vacancy $vacancy)
+    {
+        return view('admin.vacancies.form', compact('vacancy'));
     }
 
-    $data['is_active'] = $request->has('is_active');
+    public function update(Request $request, Vacancy $vacancy)
+    {
+        $data = $this->validateVacancy($request);
 
-    $vacancy->update($data);
+        if ($vacancy->title !== $request->title) {
+            $data['slug'] = Str::slug($request->title) . '-' . time();
+        }
 
-    return redirect()->route('admin.vacancies.index')->with('success', 'Vacancy updated successfully!');
-}	
+        $data['is_active'] = $request->has('is_active');
+        
+        // Обработка массивов
+        $data['required_skills'] = $this->processTags($request->required_skills);
+        $data['preferred_skills'] = $this->processTags($request->preferred_skills);
+
+        $vacancy->update($data);
+
+        return redirect()->route('admin.vacancies.index')->with('success', 'Vacancy updated successfully!');
+    }
+
+    // Общая валидация
+    private function validateVacancy(Request $request)
+    {
+        return $request->validate([
+            // Frontend
+            'title'             => 'required|string|max:255',
+            'company_name'      => 'required|string|max:255',
+            'location'          => 'nullable|string|max:255',
+            'salary_range'      => 'nullable|string|max:255',
+            'contract_type'     => 'required|string|max:100',
+            'working_mode'      => 'nullable|string|max:100',
+            'pqe_range'         => 'nullable|string|max:100',
+            'office_attendance' => 'nullable|string|max:255',
+            'summary'           => 'nullable|string',
+            'description'       => 'required|string',
+            'requirements'      => 'nullable|string',
+            'benefits'          => 'nullable|string',
+
+            // Backend
+            'internal_job_type' => 'nullable|string|max:100',
+            'practice_area'     => 'nullable|string|max:255',
+            'seniority_level'   => 'nullable|string|max:100',
+            'pqe_weighting'     => 'nullable|string|max:255',
+            'required_skills'   => 'nullable|string', // Приходит строкой, уходит в JSON
+            'preferred_skills'  => 'nullable|string', // Приходит строкой, уходит в JSON
+            'keywords'          => 'nullable|string',
+            'internal_notes'    => 'nullable|string',
+        ]);
+    }
+
+    private function processTags($string) {
+        if (!$string) return null;
+        return array_map('trim', explode(',', $string));
+    }
 }

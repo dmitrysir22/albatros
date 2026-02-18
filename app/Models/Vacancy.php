@@ -9,15 +9,24 @@ class Vacancy extends Model
 {
     use HasFactory;
 
-
-protected $fillable = [
-    'title', 'slug', 'company_name', 'company_logo', 
-    'location', 'salary_range', 'type', 
-    'description', 'required_skills', 'is_active'
-];
+    protected $fillable = [
+        // System
+        'slug', 'is_active', 'company_logo',
+        
+        // Frontend
+        'title', 'company_name', 'location', 'salary_range',
+        'contract_type', 'working_mode', 'pqe_range', 'office_attendance',
+        'summary', 'description', 'requirements', 'benefits',
+        
+        // Backend / AI
+        'internal_job_type', 'practice_area', 'seniority_level', 
+        'pqe_weighting', 'required_skills', 'preferred_skills', 
+        'keywords', 'internal_notes'
+    ];
 
     protected $casts = [
-        'required_skills' => 'array',
         'is_active' => 'boolean',
+        'required_skills' => 'array',  // Авто-конвертация JSON <-> Array
+        'preferred_skills' => 'array', // Авто-конвертация JSON <-> Array
     ];
 }
