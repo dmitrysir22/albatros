@@ -29,6 +29,14 @@ class LoginController extends Controller
         // 2. Попытка аутентификации
         // remember — опционально, если добавишь чекбокс "Запомнить меня"
         if (Auth::attempt($credentials, $request->has('remember'))) {
+          $user = Auth::user();
+          if (!$user->hasVerifiedEmail()) {
+            Auth::logout();
+            return back()->withErrors([
+                'email' => 'Your email address is not verified. Please check your inbox.',
+            ])->onlyInput('email');
+          }
+
             // Регенерируем сессию для безопасности
             $request->session()->regenerate();
 

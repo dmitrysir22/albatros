@@ -2,32 +2,50 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CandidateProfile extends Model
 {
-    use HasFactory;
+    // Разрешаем массовое заполнение всех полей
+    protected $guarded = [];
+    protected $table = 'candidate_profiles';
 
-    protected $fillable = [
-        'user_id',
-        'first_name', 'last_name', 'phone', 'location', 'linkedin_url',
-        'headline', 'years_experience', 'management_level',
-        'skills', 'experience', 'education', 'languages',
-        'cv_path', 'cv_parsed_at'
-    ];
-
-    // Автоматическое преобразование JSON в массив
+    // Приведение типов для корректной работы с JSON и датами
     protected $casts = [
-        'skills' => 'array',
-        'experience' => 'array',
-        'education' => 'array',
-        'languages' => 'array',
+        'jurisdictions' => 'array',
+        'secondary_practice_areas' => 'array',
+        'industry_sectors' => 'array',
+        'skills_tags' => 'array',
+        'pref_locations' => 'array',
+        'ai_keywords' => 'array',
+        'ai_regulatory_tags' => 'array',
         'cv_parsed_at' => 'datetime',
+        'pqe_years' => 'integer',
     ];
 
-    public function user()
+    /**
+     * Связь с пользователем (может быть NULL для гостей)
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Профессиональный опыт (от новых к старым)
+     */
+    public function experiences(): HasMany
+    {
+        return $this->hasMany(CandidateExperience::class)->orderBy('start_date', 'desc');
+    }
+
+    /**
+     * Образование
+     */
+    public function educations(): HasMany
+    {
+        return $this->hasMany(CandidateEducation::class);
     }
 }
